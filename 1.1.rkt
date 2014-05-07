@@ -1,4 +1,4 @@
-#lang racket
+#lang scheme
 
 10
 (+ 5 3 4)

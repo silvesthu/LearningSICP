@@ -1,4 +1,4 @@
-#lang racket
+#lang scheme
 
 (define (sqrsum2of3 x y z) 
 		(cond	( (< x y)
