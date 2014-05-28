@@ -1,7 +1,6 @@
 #lang scheme
 
 (define COUNT 0)
-(define COUNT_SINE 0)
 
 (define (cube x) (* x x x))
 
