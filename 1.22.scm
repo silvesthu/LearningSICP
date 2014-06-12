@@ -64,6 +64,8 @@
 ;(search-for-prime 100000)
 ;(search-for-prime 1000000)
 ;(search-for-prime 10000000)
+; Can not take reasonable time on small number
+
 (search-for-prime 1000000000000000) ; 577
 (search-for-prime 10000000000000000) ; 1916
 (search-for-prime 100000000000000000) ; 5975
