@@ -1,5 +1,8 @@
 #lang scheme
 
+(require profile)
+(require srfi/27)
+
 (define (square x) (* x x))
 
 (define (divides? a b)
@@ -22,13 +25,10 @@
 				(else
 		 		 (remainder (* base (expmod base (- exp 1) m)) m))))
 
-(define (big-random n)
-	(random (min n 4294967087)))
-
 (define (fermat-test n)
   (define (try-it a)
   	(= (expmod a n n) a))
-  (try-it (+ 1 (big-random (- n 1)))))
+  (try-it (+ 1 (random-integer (- n 1)))))
 
 (define (fast-prime? n times)
 	(cond ((= times 0) true)
@@ -42,14 +42,14 @@
 	(newline)
 	(display "Begin Test on ")
 	(display n)
-	(start-prime-test n (current-milliseconds)))
+	(start-prime-test n (current-inexact-milliseconds)))
 
 (define (start-prime-test n start-time)
 	;(let ((r (prime? n)))
-	(let ((r (fast-prime? n n)))
-		;(report-prime (- (current-milliseconds) start-time))
+	(let ((r (fast-prime? n 100)))
+		;(report-prime (- (current-inexact-milliseconds) start-time))
 		(if r
-			(report-prime (- (current-milliseconds) start-time))
+			(report-prime (- (current-inexact-milliseconds) start-time))
 			#f
 		)
 	)
@@ -87,31 +87,30 @@
 ; (search-for-prime 100000000000000000) ; 100000000000000003 : 5975
 ; (search-for-prime 1000000000000000000) ; 1000000000000000003 : 20424
 
-; random by 1000 times
+; random by 100 times
 
-;(search-for-prime 1000000000000000) ; 1000000000000037 : 47
-;(search-for-prime 10000000000000000) ; 10000000000000061 : 34 
-;(search-for-prime 100000000000000000) ; 100000000000000003 : 45
-;(search-for-prime 1000000000000000000) ; 1000000000000000003 : 36
+;(search-for-prime 10000) ; 0.094970703125
+;(search-for-prime 10000000) ; 0.195068359375 		   
+;(search-for-prime 10000000000) ; 2.10498046875	 
+;(search-for-prime 10000000000000) ; 3.3251953125	 
+;(search-for-prime 10000000000000000) ; 3.985107421875	 
+;(search-for-prime 10000000000000000000) ; 4.18115234375
 
-; random by 100000 times
+;(search-for-prime (expt 10 5 )) ; 0.11279296875
+;(search-for-prime (expt 10 10)) ; 2.01708984375
+;(search-for-prime (expt 10 20)) ; 11.430908203125
+;(search-for-prime (expt 10 40)) ; 37.94091796875
+;(search-for-prime (expt 10 80)) ; 88.363037109375
+;(search-for-prime (expt 10 160)) ; 224.590087890625
 
-;(search-for-prime 1000000000000000) ; 1000000000000037 : 3643
-;(search-for-prime 10000000000000000) ; 10000000000000061 : 3920 
-;(search-for-prime 100000000000000000) ; 100000000000000003 : 4055
-;(search-for-prime 1000000000000000000) ; 1000000000000000003 : 4310
+;(search-for-prime (expt 2 100)) ; 15.14599609375
+;(search-for-prime (expt 2 200)) ; 49.4599609375
+;(search-for-prime (expt 2 400)) ; 103.661865234375
+;(search-for-prime (expt 2 800)) ; 318.169189453125
+;(search-for-prime (expt 2 1600)) ; 1320.11083984375
 
-; Since the amount of try is a fixed number,
-; the observed time is on same order for a fixed number (finish all tries)
+; why ?
 
-; so it fits the O(logn) ?
-; since n >> 10, O(logn) and O(1) gives the similar result.
-; further reading :
-; http://stackoverflow.com/questions/1491795/olog-n-o1-why-not
-
-; random by n times => if n varies depending on n, it need some other explaination.
-
-(search-for-prime 10000) ; 10007 : 8
-(search-for-prime 100000) ; 100003 : 107 
-(search-for-prime 1000000) ; 1000003 : 1164
-(search-for-prime 10000000) ; 10000019 : 14083
+; extra : random-integer with out limitation 
+; ref: http://practical-scheme.net/gauche/man/gauche-refj_118.html
+; ref: http://www.billthelizard.com/2010/02/sicp-exercise-124-fermat-test.html
