@@ -39,9 +39,9 @@
 	(= n (smallest-divisor n)))
 
 (define (timed-prime-test n)
-	(newline)
-	(display "Begin Test on ")
-	(display n)
+	;(newline)
+	;(display "Begin Test on ")
+	;(display n)
 	(start-prime-test n (current-inexact-milliseconds)))
 
 (define (start-prime-test n start-time)
@@ -56,10 +56,10 @@
 )
 
 (define (report-prime elapsed-time)
-	(newline)
-	(display "End Test")
-	(newline)
-	(display " *** ")
+	;(newline)
+	;(display "End Test")
+	;(newline)
+	;(display " *** ")
 	(display elapsed-time)
 	(newline)
   #t)
@@ -96,6 +96,22 @@
 ;(search-for-prime 10000000000000000) ; 3.985107421875	 
 ;(search-for-prime 10000000000000000000) ; 4.18115234375
 
+(define (for-each-begin-end begin end next action)
+	(when (not (= begin end))
+	 	 ;(display begin)
+	 	 ;(display " ")
+		 (action begin)
+		 (for-each-begin-end (next begin) end next action)
+	)
+)
+
+(define (next i) (* i 10))
+
+(for-each-begin-end 10000000000 100000000000000000000000000000000000000000000000 next search-for-prime)
+(display ">>>>>>") (newline)
+(for-each-begin-end 10000000000 100000000000000000000000000000000000000000000000 next search-for-prime)
+;(search-for-prime 10000000000000)
+
 ;(search-for-prime (expt 10 5 )) ; 0.11279296875
 ;(search-for-prime (expt 10 10)) ; 2.01708984375
 ;(search-for-prime (expt 10 20)) ; 11.430908203125
@@ -109,8 +125,44 @@
 ;(search-for-prime (expt 2 800)) ; 318.169189453125
 ;(search-for-prime (expt 2 1600)) ; 1320.11083984375
 
-; why ?
-
 ; extra : random-integer with out limitation 
 ; ref: http://practical-scheme.net/gauche/man/gauche-refj_118.html
 ; ref: http://www.billthelizard.com/2010/02/sicp-exercise-124-fermat-test.html
+
+;1E+10	2.00390625
+;1E+11	2.521972656
+;1E+12	2.768798828
+;1E+13	20.80004883 // weird result, disappear on second run
+;1E+14	4.001220703
+;1E+15	3.065185547
+;1E+16	4.645996094
+;1E+17	3.897949219
+;1E+18	3.968994141
+;1E+19	3.58203125
+;1E+20	11.51782227
+;1E+21	12.49609375
+;1E+22	11.88110352
+;1E+23	12.94604492
+;1E+24	13.57397461
+;1E+25	12.74584961
+;1E+26	14.50415039
+;1E+27	15.66992188
+;1E+28	16.20703125
+;1E+29	18.07202148
+;1E+30	17.91113281
+;1E+31	18.25610352
+;1E+32	19.48486328
+;1E+33	22.04101563
+;1E+34	21.09594727
+;1E+35	21.37304688
+;1E+36	23.37597656
+;1E+37	22.57495117
+;1E+38	22.95092773
+;1E+39	26.25415039
+;1E+40	27.58105469
+;1E+41	29.03100586
+;1E+42	29.6340332
+;1E+43	29.33105469
+;1E+44	34.47094727
+;1E+45	31.35107422
+;1E+46	31.921875
