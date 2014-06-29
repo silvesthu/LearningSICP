@@ -17,14 +17,14 @@
 (define (expmod-direct base exp m)
 	(remainder (fast-expt base exp) m))
 
-; from 1.24
-
 (define (expmod base exp m)
 	(cond ((= exp 0) 1)
 				((even? exp)
 		 		 (remainder (square (expmod base (/ exp 2) m)) m))
 				(else
 		 		 (remainder (* base (expmod base (- exp 1) m)) m))))
+
+; from 1.24
 
 (time (expmod-direct 123321 1000000 123)) ; 1549
 (time (expmod 123321 1000000 123)) ; 0
