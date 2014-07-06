@@ -40,3 +40,13 @@
 (time (calc4pi product-iter 10000))
 
 ; why iterative version is slower ?
+
+; -> difference between fraction and decimal
+
+; when evaluation the last term (term count) => 1.0, the whole calculation become running with decimal
+
+; Iterative Version : (term count) comes at last in product.
+; >>>> (* (* (term 0) (term 1)) (term 2) ...
+
+; Recursive Version : (term count) comes at first in product. 
+; >>>> (* (* (term count) (term (- count 1)) (term (- count 2) ...
