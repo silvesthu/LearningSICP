@@ -4,10 +4,10 @@
 	(lambda (x) (f (g x)))
 )
 
-(define (sqaure x)
+(define (square x)
 	(* x x)
 )
 
 (define (inc x) (+ x 1))
 
-((compose sqaure inc) 6)
+((compose square inc) 6)
