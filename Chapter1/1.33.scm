@@ -1,6 +1,6 @@
 #lang scheme
 
-(require "./common/prime.scm")
+(require "./../common/prime.scm")
 
 (define (filtered-accumulate combiner null-value term a next b predicate)
 	(let ((value (term a)))
