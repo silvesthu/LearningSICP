@@ -22,10 +22,10 @@
 
 ; But how to prove some function is not exist ...
 
+; mul
+
 (width (make-interval 2 2))
 (width (make-interval 0 2))
 (width (mul-interval (make-interval 2 2) (make-interval 0 2)))
 
-; mul
-
-; div
+; div -> there is div-zero error
