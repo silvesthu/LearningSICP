@@ -41,6 +41,7 @@ x
 	)
 )
 
-(define z (list 2 3 (list 4 5) (list 1 3) 3 5))
-z
+(define z (list 2 3 (list (list 1 2 3) 5) (list 1 3) 3 5))
+(display z)
+(newline)
 (deep-reverse z)
