@@ -39,3 +39,13 @@
 ; (list a b) != (list b a)
 ; a * b = b * a
 ; maybe three or more parameters
+
+; -----------------------
+;　fold-left forms tail-recursion while fold-right does not
+; switch position in op will let fold-left form similar result as form-right
+; but iterate from the last element to the first one
+
+; -----------------------
+; wiki : http://en.wikipedia.org/wiki/Fold_(higher-order_function)
+
+; a.k.a. accumulate, aggregate, reduce, etc.
