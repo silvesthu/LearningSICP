@@ -77,9 +77,9 @@
 					(queen-cols (- k 1))))))
 	(queen-cols board-size))
 
-(queens 0)
+(queens 0) ; (()) one solution of no queen ? => reason for different form ?
 (queens 1)
-(queens 2)
+(queens 2) ; ()   no solution
 (queens 3)
 (queens 4)
 (length (queens 7))
