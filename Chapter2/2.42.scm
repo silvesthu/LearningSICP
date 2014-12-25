@@ -45,17 +45,36 @@
 )
 
 (define empty-board null)
-(define (safe? k positions) 
-	(let 
-		((last-queen (last positions))) ; no better way here ?		
-		(if (and (pair? positions) (null? (cdr positions)))
-			#t
-			(and (check? (car positions) last-queen) (safe? k (cdr positions)))
+
+; ----- put last quee at last
+
+;(define (safe? k positions) 
+;	(let 
+;		((last-queen (last positions))) ; no better way here ?		
+;		(if (and (pair? positions) (null? (cdr positions)))
+;			#t
+;			(and (check? (car positions) last-queen) (safe? k (cdr positions)))
+;		)
+;	)
+;)
+;(define (adjoin-position new-row k rest-of-queens) (append rest-of-queens (list (list new-row k)))) 
+
+; ----- put last queen at first
+
+(define (safe? k positions)
+	(let ((last-queen (car positions)))
+		(define (safe-inner? queens)
+			(if (null? queens)
+				#t
+				(and (check? (car queens) last-queen) (safe-inner? (cdr queens)))
+			)
 		)
+		;(display "<") (display last-queen) (display ",") (display (cdr positions)) (display (safe-inner? (cdr positions))) (display ">")
+		(safe-inner? (cdr positions))
 	)
 )
+(define (adjoin-position new-row k rest-of-queens) (append (list (list new-row k)) rest-of-queens))
 
-(define (adjoin-position new-row k rest-of-queens) (append rest-of-queens (list (list new-row k)))) ; 
 
 ; position format as (x1 x2)
 ; one solution format as ((x1 x2) (y1 y2))
