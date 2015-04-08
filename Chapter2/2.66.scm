@@ -79,3 +79,17 @@
 
 (test)
 (lookup 3 (test))
+
+(define (test2) (list->tree `( 
+	,(make-pair 1 "a")
+	,(make-pair 5 "e")
+	,(make-pair 3 "c")
+	,(make-pair 4 "d")
+	,(make-pair 2 "b")
+)))
+
+(test2)
+(lookup 4 (test2))
+
+; ` as quasiquote
+; , as unquote
