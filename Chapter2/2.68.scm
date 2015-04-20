@@ -52,6 +52,9 @@
 
 (decode sample-message sample-tree)
 
+(provide encode)
+(provide encode-symbol)
+
 (define (encode-symbol symbol tree)
 	(cond 
 		((null? tree) (error "null tree"))

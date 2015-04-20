@@ -45,9 +45,8 @@
 )
 
 (define (successive-merge set)
-	(print set) (newline)
 	(if (pair? (cdr set))
-		(successive-merge (cons (make-code-tree (car set) (cadr set)) (cddr set)))
+		(successive-merge (adjoin-set (make-code-tree (cadr set) (car set)) (cddr set)))
 		(car set)
 	)
 )
@@ -56,11 +55,7 @@
 	(successive-merge (make-leaf-set pairs))
 )
 
-(generate-huffman-tree (list '("A" 4) '("B" 2) '("C" 1) '("D" 1)))
-
-(newline)
-
-(generate-huffman-tree (list 
+(define sample (generate-huffman-tree (list 
 '("A" 8) 
 '("B" 3) 
 '("C" 1) 
@@ -69,4 +64,8 @@
 '("F" 1) 
 '("G" 1) 
 '("H" 1)
-))
+)))
+
+(provide generate-huffman-tree)
+
+(print sample)
