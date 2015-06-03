@@ -37,3 +37,55 @@
 ; Best for adding type often : Message-passing-style
 
 ; Best for adding op often : Data-directed style ? (or Message-passing-style...)
+
+
+; -------------
+
+; Some misunderstanding has been clarified !
+
+; 1. Function closure as object (and set! works on local names !)
+
+(define (Counter init) ; only constructor
+	(define value init) ; declaration is necessary (otherwise unbound identifier access)
+	(define (call method . arg) ; function table
+		(cond ; dispatch
+			((eq? method 'inc) (set! value (+ value 1)))
+			((eq? method 'get) value)
+			((eq? method 'set) (set! value (car arg)))
+			((eq? method 'expand))
+			; ... more
+			(else (error "invalid method call" method))
+		)
+	)
+	call
+)
+
+(define counter (Counter 0))
+;(counter 'get)
+;(counter 'inc)
+;(counter 'get)
+;(counter 'inc)
+;(counter 'get)
+;(counter 'set 1024)
+;(counter 'get)
+
+(define (Step2Counter init)
+	(define counter (Counter init))
+	(define (call method . arg) ; function table
+		(define (call-inner method args)
+			(cond ; dispatch
+				((eq? method 'inc) (counter 'set (+ (counter 'get) 2)))
+				(else (counter method arg)) ; how to pass down vararg ?
+			)
+		)
+		(call-inner method arg)
+	)
+	call
+)
+
+(define counter-2 (Step2Counter 0))
+;(counter-2 'get)
+;(counter-2 'inc)
+;(counter-2 'get)
+(counter-2 'set 1024)
+(counter-2 'get)
