@@ -75,7 +75,22 @@
 		(define (call-inner method args)
 			(cond ; dispatch
 				((eq? method 'inc) (counter 'set (+ (counter 'get) 2)))
-				(else (counter method arg)) ; how to pass down vararg ?
+				; (else (counter method arg)) ; how to pass down vararg ?
+				; => apply works as opposite to vararg
+				
+				; equivalent forms
+				(else (apply counter method arg))
+				;(else (apply counter (cons method arg)))
+
+				; apply itself also accept varargs in form of
+				; (define (apply func arg0 arg1 ... args)
+				;	(apply func (append (list arg0 arg1 ...) args))
+				; )
+
+				; final form
+				; (define (apply func args)
+				; 	<Internal implementation>
+				; )
 			)
 		)
 		(call-inner method arg)
@@ -84,8 +99,8 @@
 )
 
 (define counter-2 (Step2Counter 0))
-;(counter-2 'get)
-;(counter-2 'inc)
-;(counter-2 'get)
+(counter-2 'get)
+(counter-2 'inc)
+(counter-2 'get)
 (counter-2 'set 1024)
 (counter-2 'get)
