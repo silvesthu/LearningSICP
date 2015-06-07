@@ -104,3 +104,40 @@
 (counter-2 'get)
 (counter-2 'set 1024)
 (counter-2 'get)
+
+(newline)
+
+; quote
+
+; 1. quasiquote
+(quasiquote (1 2 (unquote (+ 1 2)) (unquote (- 5 1))))
+; => (1 2 3 4)
+; => quasiquote can be unquoted inside (partial eval)
+
+; 2. quote
+(quote (1 2 (unquote (+ 1 2)) (unquote (- 5 1))))
+; => quote can't be unquoted (partial evaluated)
+
+; 3. unquote-slicing
+`(1 2 ,@(list (+ 1 2) (- 5 1)))
+; => (1 2 3 4)
+
+`(1 2 ,(list (+ 1 2) (- 5 1)))
+; => (1 2 (3 4))
+
+`(1 2 ,(+ 1 2) ,(- 5 1))
+; => (1 2 3 4)
+
+; quote : program as data
+
+; 4. eval : data as program
+
+(define ns (make-base-namespace)) ; must specify some namespace in Racket
+(eval '(cons 1 2) ns) ; works
+
+(define (call-binary op left right)
+	(eval (list op left right) ns)
+)
+
+(call-binary '+ 1 2)
+(call-binary '* 2 3)
