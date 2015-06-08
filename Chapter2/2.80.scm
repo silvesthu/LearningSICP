@@ -101,6 +101,9 @@
   (put 'equ? '(rational rational) 
   	   (lambda (x y) (and (eq? (numer x) (numer y)) (eq? (denom x) (denom y)))))
 
+  (put '=zero? 'rational 
+       (lambda (x) (and (eq? (numer x) 0) (not (eq? (denom x) 0)))))
+
   (put 'make 'rational
        (lambda (n d) (tag (make-rat n d))))
   'done)
@@ -148,6 +151,7 @@
        (lambda (r a) (tag (make-from-mag-ang r a))))
 
   (put 'equ? '(complex complex) equ?)
+  (put '=zero? 'complex =zero?)
 
   ; 2.77 begin (dispatch to detail type)
   (put 'real-part 'complex real-part)
@@ -194,6 +198,8 @@
        (lambda (r a) (tag (make-from-mag-ang r a))))
   (put 'equ? '(rectangular rectangular) 
   	   (lambda (x y) (and (eq? (real-part x) (real-part y)) (eq? (imag-part x) (imag-part y)))))
+  (put '=zero? 'rectangular 
+       (lambda (x) (and (eq? (real-part x) 0) (eq? (imag-part x) 0))))
   'done)
   
 
@@ -224,6 +230,8 @@
        (lambda (r a) (tag (make-from-mag-ang r a))))
   (put 'equ? '(polar polar) 
   	   (lambda (x y) (and (eq? (magnitude x) (magnitude y)) (eq? (angle x) (angle y)))))
+  (put '=zero? 'polar 
+       (lambda (x) (and (eq? (magnitude x) 0) (eq? (angle x) 0))))
   'done)
 
 (define (real-part z) (apply-generic 'real-part z))
@@ -234,16 +242,17 @@
 ; above copy from http://unlearned.hatenablog.com/entry/20100202/1265117310
 
 ; plain number
-(equ? 1 1)
+(=zero? 0)
 
 ; rational
 (install-rational-package)
-(equ? (make-rational 1 2) (make-rational 2 3))
-(equ? (make-rational 1 2) (make-rational 1 2))
+(=zero? (make-rational 1 2))
+(=zero? (make-rational 0 5))
 
 ; complex
 (install-polar-package)
 (install-rectangular-package)
 (install-complex-package)
 (newline)
-(equ? (make-complex-from-mag-ang 1 2) (make-complex-from-mag-ang 1 2))
+(=zero? (make-complex-from-mag-ang 0 0))
+(=zero? (make-complex-from-mag-ang 1 2))
