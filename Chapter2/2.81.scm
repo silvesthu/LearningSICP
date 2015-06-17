@@ -9,48 +9,33 @@
 
 (define (put op type item) (set! table (append table (list (list op type item)))))
 (define (get op type) 
-	(define (get-inner op type t)
-		;(display t) (newline)
-		(cond 
-			((null? t) null)
-			((and (equal? op (caar t)) (equal? type (cadar t))) (caddar t))
-			(else (get-inner op type (cdr t)))
-		)
-	)
-	(get-inner op type table)
+  (define (get-inner op type t)
+    (cond 
+      ((null? t) #f)
+      ((and (equal? op (caar t)) (equal? type (cadar t))) (caddar t))
+      (else (get-inner op type (cdr t)))
+    )
+  )
+  (get-inner op type table)
 )
 
 ; above from 2.73
 
 (define (attach-tag type-tag contents)
-	(cond ((number? contents) contents)
-		(else (cons type-tag contents)))
-	) 
-
-(define (apply-generic op . args)
-  (display (quasiquote (apply-generic called for ,op on ,args)))
-  (newline)
-  (let ((type-tags (map type-tag args)))
-  	(display (quasiquote (type-tags = ,args))) (newline)
-  	; unpack type list on single param
-    (let ((proc (get op (if (and (pair? type-tags) (eq? (cdr type-tags) null)) (car type-tags) type-tags))))
-      (display (quasiquote (apply ,proc as ,op of ,type-tags on ,(map contents args)))) (newline)
-      (if proc      	
-        (apply proc (map contents args))
-        (error
-          "No method for these types -- APPLY-GENERIC"
-          (list op type-tags))))))
+  (cond ((number? contents) contents)
+    (else (cons type-tag contents)))
+  ) 
 
 (define (type-tag datum)
   (cond
-  	((number? datum) 'number) ; dummy
-  	((pair? datum) (car datum))
+    ((number? datum) 'number) ; dummy
+    ((pair? datum) (car datum))
     (error "Bad tagged datum -- TYPE-TAG" datum)))
 
 (define (contents datum)
   (cond 
-  	((number? datum) datum)
-  	((pair? datum) (cdr datum))
+    ((number? datum) datum)
+    ((pair? datum) (cdr datum))
     (error "Bad tagged datum -- CONTENTS" datum)))
 
 (put 'add '(number number) (lambda (x y) (+ x y))) ; still have to port....
@@ -99,7 +84,7 @@
        (lambda (x y) (tag (div-rat x y))))
 
   (put 'equ? '(rational rational) 
-  	   (lambda (x y) (and (eq? (numer x) (numer y)) (eq? (denom x) (denom y)))))
+       (lambda (x y) (and (eq? (numer x) (numer y)) (eq? (denom x) (denom y)))))
 
   (put 'make 'rational
        (lambda (n d) (tag (make-rat n d))))
@@ -193,7 +178,7 @@
   (put 'make-from-mag-ang 'rectangular
        (lambda (r a) (tag (make-from-mag-ang r a))))
   (put 'equ? '(rectangular rectangular) 
-  	   (lambda (x y) (and (eq? (real-part x) (real-part y)) (eq? (imag-part x) (imag-part y)))))
+       (lambda (x y) (and (eq? (real-part x) (real-part y)) (eq? (imag-part x) (imag-part y)))))
   'done)
   
 
@@ -223,7 +208,7 @@
   (put 'make-from-mag-ang 'polar
        (lambda (r a) (tag (make-from-mag-ang r a))))
   (put 'equ? '(polar polar) 
-  	   (lambda (x y) (and (eq? (magnitude x) (magnitude y)) (eq? (angle x) (angle y)))))
+       (lambda (x y) (and (eq? (magnitude x) (magnitude y)) (eq? (angle x) (angle y)))))
   'done)
 
 (define (real-part z) (apply-generic 'real-part z))
@@ -233,18 +218,110 @@
 
 ; above copy from http://unlearned.hatenablog.com/entry/20100202/1265117310
 
-; plain number
-(equ? 1 1)
-
-; rational
 (install-rational-package)
-(equ? (make-rational 1 2) (make-rational 2 3))
-(equ? (make-rational 1 2) (make-rational 1 2))
-
-; complex
 (install-polar-package)
 (install-rectangular-package)
 (install-complex-package)
-(newline)
-(equ? (make-complex-from-mag-ang 1 2) (make-complex-from-mag-ang 1 2))
 
+(define coercion-table 0)
+(set! coercion-table '())
+
+; with a simple list of list (not a table actually...)
+
+(define (put-coercion from to item) (set! table (append table (list (list from to item)))))
+(define (get-coercion from to) 
+	(define (get-inner from to t)
+		;(display t) (newline)
+		(cond 
+			((null? t) #f)
+			((and (equal? from (caar t)) (equal? to (cadar t))) (caddar t))
+			(else (get-inner from to (cdr t)))
+		)
+	)
+	(get-inner from to table)
+)
+
+; --------------------------------
+
+; a. 
+
+; apply-generic call it self after conversion
+; so a conversion both from and to same type will cause infinity loop
+
+; b. 
+
+; No, nothing has to be added. Function calls with parameters with same type 
+; are handled as they installed in the first place.
+; Except there is risk that it is possible that a. may occur.
+
+; c.
+
+(define (apply-generic op . args)
+  ;(display (quasiquote (apply-generic called for ,op on ,args)))
+  ;(newline)
+  (let ((type-tags (map type-tag args)))
+    ;(display (quasiquote (type-tags = ,args))) (newline)
+    ; unpack type list on single param
+    (let ((proc (get op (if (and (pair? type-tags) (eq? (cdr type-tags) null)) (car type-tags) type-tags))))
+      ;(display (quasiquote (apply ,proc as ,op of ,type-tags on ,(map contents args)))) (newline)
+      (if proc        
+        (apply proc (map contents args))
+        (error
+          "1. No method for these types -- APPLY-GENERIC"
+          (list op type-tags))))))
+
+(define (apply-generic-coericion op . args)
+  (let ((type-tags (map type-tag args)))
+       (let ((proc (get op (if (and (pair? type-tags) (eq? (cdr type-tags) null)) (car type-tags) type-tags))))
+            (if proc
+                (apply proc (map contents args))
+                (if (= (length args) 2)
+                    (let ((type1 (car type-tags))
+                          (type2 (cadr type-tags))
+                          (a1 (car args))
+                          (a2 (cadr args)))
+                         (let ((t1->t2 (get-coercion type1 type2))
+                               (t2->t1 (get-coercion type2 type1)))
+                              (cond (t1->t2
+                                      (apply-generic-coericion op (t1->t2 a1) a2))
+                                    (t2->t1
+                                      (apply-generic-coericion op a1 (t2->t1 a2)))
+                                    (else (error "1. No method for these types" (list op type-tags))))))
+                    (error "2. No method for these types" (list op type-tags)))))))
+
+(define (apply-generic-safe op . args)
+  (let ((type-tags (map type-tag args)))
+       (let ((proc (get op (if (and (pair? type-tags) (eq? (cdr type-tags) null)) (car type-tags) type-tags))))
+            (if proc
+                (apply proc (map contents args))
+                (if (= (length args) 2)
+                    (let ((type1 (car type-tags))
+                          (type2 (cadr type-tags))
+                          (a1 (car args))
+                          (a2 (cadr args)))
+                         (if (not (eq? type1 type2))
+                         	(let ((t1->t2 (get-coercion type1 type2))
+                               (t2->t1 (get-coercion type2 type1)))
+                              (cond (t1->t2
+                                      (apply-generic-safe op (t1->t2 a1) a2))
+                                    (t2->t1
+                                      (apply-generic-safe op a1 (t2->t1 a2)))
+                                    (else (error "1. No method for these types" (list op type-tags)))))
+                         	(error "2. No method for these types" (list op type-tags)))
+                         )
+                    (error "3. No method for these types" (list op type-tags)))))))
+
+
+(define c12 (make-complex-from-real-imag 1 2))
+(define c34 (make-complex-from-real-imag 3 4))
+(apply-generic 'add c12 c34)
+(apply-generic-coericion 'add c12 c34)
+
+; (apply-generic-coericion 'addd c12 c34) ; method not found
+
+(define (complex->complex z) z)
+(put-coercion 'complex 'complex complex->complex)
+
+;(apply-generic-coericion 'addd c12 c34) ; infinity loop
+
+(apply-generic-safe 'addd c12 c34) ; method not found
