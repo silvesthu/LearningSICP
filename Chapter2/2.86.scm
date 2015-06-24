@@ -1,3 +1,7 @@
+#lang scheme
+
+;(include "./algebra.scm")
+
 (define table 0)
 (set! table '())
 
@@ -167,64 +171,64 @@
 (define (square x)
   (* x x))
 
-;; 直交座標表現
-(define (install-rectangular-package)
-  ;;内部手続き
-  (define (real-part z) (car z))
-  (define (imag-part z) (cdr z))
-  (define (make-from-real-imag x y) (cons x y))
-  (define (magnitude z)
-    (sqrt (+ (square (real-part z))
-             (square (imag-part z)))))
-  (define (angle z)
-    (atan (imag-part z) (real-part z)))
-  (define (make-from-mag-ang r a)
-    (cons (* r (cos a)) (* r (sin a))))
+;;; 直交座標表現
+;(define (install-rectangular-package)
+;  ;;内部手続き
+;  (define (real-part z) (car z))
+;  (define (imag-part z) (cdr z))
+;  (define (make-from-real-imag x y) (cons x y))
+;  (define (magnitude z)
+;    (sqrt (+ (square (real-part z))
+;             (square (imag-part z)))))
+;  (define (angle z)
+;    (atan (imag-part z) (real-part z)))
+;  (define (make-from-mag-ang r a)
+;    (cons (* r (cos a)) (* r (sin a))))
   
-  ;;システムの他の部分とのインターフェース
-  (define (tag x)
-    (attach-tag 'rectangular x))
-  (put 'real-part 'rectangular real-part)
-  (put 'imag-part 'rectangular imag-part)
-  (put 'magnitude 'rectangular magnitude)
-  (put 'angle 'rectangular angle)
-  (put 'make-from-real-imag 'rectangular 
-       (lambda (x y) (tag (make-from-real-imag x y))))
-  (put 'make-from-mag-ang 'rectangular
-       (lambda (r a) (tag (make-from-mag-ang r a))))
-  (put 'equ? '(rectangular rectangular) 
-       (lambda (x y) (and (eq? (real-part x) (real-part y)) (eq? (imag-part x) (imag-part y)))))
-  'done)
+;  ;;システムの他の部分とのインターフェース
+;  (define (tag x)
+;    (attach-tag 'rectangular x))
+;  (put 'real-part 'rectangular real-part)
+;  (put 'imag-part 'rectangular imag-part)
+;  (put 'magnitude 'rectangular magnitude)
+;  (put 'angle 'rectangular angle)
+;  (put 'make-from-real-imag 'rectangular 
+;       (lambda (x y) (tag (make-from-real-imag x y))))
+;  (put 'make-from-mag-ang 'rectangular
+;       (lambda (r a) (tag (make-from-mag-ang r a))))
+;  (put 'equ? '(rectangular rectangular) 
+;       (lambda (x y) (and (eq? (real-part x) (real-part y)) (eq? (imag-part x) (imag-part y)))))
+;  'done)
   
 
-;;極座標表現
-(define (install-polar-package)
-  ;;内部手続き
-  (define (magnitude z) (car z))
-  (define (angle z) (cdr z))
-  (define (make-from-mag-ang r a) (cons r a))
-  (define (real-part z)
-    (* (magnitude z) (cos (angle z))))
-  (define (imag-part z)
-    (* (magnitude z) (sin (angle z))))
-  (define (make-from-real-imag x y)
-    (cons (sqrt (+ (square x) (square y)))
-          (atan y x)))
-
-  ;;システムの他の部分とのインターフェイス
-  (define (tag x)
-    (attach-tag 'polar x))
-  (put 'real-part 'polar real-part)
-  (put 'imag-part 'polar imag-part)
-  (put 'magnitude 'polar magnitude)
-  (put 'angle 'polar angle)
-  (put 'make-from-real-imag 'polar
-       (lambda (x y) (tag (make-from-real-imag x y))))
-  (put 'make-from-mag-ang 'polar
-       (lambda (r a) (tag (make-from-mag-ang r a))))
-  (put 'equ? '(polar polar) 
-       (lambda (x y) (and (eq? (magnitude x) (magnitude y)) (eq? (angle x) (angle y)))))
-  'done)
+;;;極座標表現
+;(define (install-polar-package)
+;  ;;内部手続き
+;  (define (magnitude z) (car z))
+;  (define (angle z) (cdr z))
+;  (define (make-from-mag-ang r a) (cons r a))
+;  (define (real-part z)
+;    (* (magnitude z) (cos (angle z))))
+;  (define (imag-part z)
+;    (* (magnitude z) (sin (angle z))))
+;  (define (make-from-real-imag x y)
+;    (cons (sqrt (+ (square x) (square y)))
+;          (atan y x)))
+;
+;  ;;システムの他の部分とのインターフェイス
+;  (define (tag x)
+;    (attach-tag 'polar x))
+;  (put 'real-part 'polar real-part)
+;  (put 'imag-part 'polar imag-part)
+;  (put 'magnitude 'polar magnitude)
+;  (put 'angle 'polar angle)
+;  (put 'make-from-real-imag 'polar
+;       (lambda (x y) (tag (make-from-real-imag x y))))
+;  (put 'make-from-mag-ang 'polar
+;       (lambda (r a) (tag (make-from-mag-ang r a))))
+;  (put 'equ? '(polar polar) 
+;       (lambda (x y) (and (eq? (magnitude x) (magnitude y)) (eq? (angle x) (angle y)))))
+;  'done)
 
 (define (real-part z) (apply-generic 'real-part z))
 (define (imag-part z) (apply-generic 'imag-part z))
@@ -236,9 +240,9 @@
 (display "Install packages...") (newline)
 
 (install-rational-package)
-(install-polar-package)
-(install-rectangular-package)
-(install-complex-package)
+;(install-polar-package)
+;(install-rectangular-package)
+;(install-complex-package)
 
 (define (install-real-package) ; e.g. use inexact to represent real
   (define (tag x) (attach-tag-force 'real x)) ; conflict with number.... use an alternative attach-tag...
@@ -299,3 +303,126 @@
 )
 
 (install-simplify-package)
+
+;;複素数表現
+(define (install-complex-package-compound)
+  ;;直交座標と極座標パッケージから取り入れた手続き
+  (define (make-from-real-imag x y)
+    ((get 'make-from-real-imag 'rectangular) x y))
+  (define (make-from-mag-ang r a)
+    ((get 'make-from-mag-ang 'polar) r a))
+
+  ;;内部手続き
+  (define (add-complex z1 z2)
+    (make-from-real-imag (apply-generic 'add (real-part z1) (real-part z2))
+                         (apply-generic 'add (imag-part z1) (imag-part z2))))
+  (define (sub-complex z1 z2)
+    (make-from-real-imag (apply-generic 'sub (real-part z1) (real-part z2))
+                         (apply-generic 'sub (imag-part z1) (imag-part z2))))
+  (define (mul-complex z1 z2)
+    (make-from-mag-ang (apply-generic 'mul (magnitude z1) (magnitude z2))
+                       (apply-generic 'add (angle z1) (angle z2))))
+  (define (div-complex z1 z2)
+    (make-from-mag-ang (apply-generic 'div (magnitude z1) (magnitude z2))
+                       (apply-generic 'sub (angle z1) (angle z2))))
+
+  ;;システムの他の部分へのインターフェース
+  (define (tag z) (attach-tag 'complex z))
+  (put 'add '(complex complex)
+       (lambda (z1 z2) (tag (add-complex z1 z2))))
+  (put 'sub '(complex complex)
+       (lambda (z1 z2) (tag (sub-complex z1 z2))))
+  (put 'mul '(complex complex)
+       (lambda (z1 z2) (tag (mul-complex z1 z2))))
+  (put 'div '(complex complex)
+       (lambda (z1 z2) (tag (div-complex z1 z2))))
+  (put 'make-from-real-imag 'complex
+       (lambda (x y) (tag (make-from-real-imag x y))))
+  (put 'make-from-mag-ang 'complex
+       (lambda (r a) (tag (make-from-mag-ang r a))))
+
+  (put 'equ? '(complex complex) equ?)
+
+  ; 2.77 begin (dispatch to detail type)
+  (put 'real-part 'complex real-part)
+  (put 'imag-part 'complex imag-part)
+  (put 'magnitude 'complex magnitude)
+  (put 'angle 'complex angle)
+  ; 2.77 end
+
+  'done)
+
+;; 直交座標表現
+(define (install-rectangular-package-compound)
+  ;;内部手続き
+  (define (real-part z) (car z))
+  (define (imag-part z) (cdr z))
+  (define (make-from-real-imag x y) (cons x y))
+  (define (magnitude z)
+    (apply-generic 'sqrt (apply-generic 'add (apply-generic 'square (real-part z))
+             (apply-generic 'square (imag-part z)))))
+  (define (angle z)
+    (apply-generic 'atan (imag-part z) (real-part z)))
+  (define (make-from-mag-ang r a)
+    (cons (apply-generic 'mul r (apply-generic 'cos a)) (apply-generic 'mul r (apply-generic 'sin a))))
+  
+  ;;システムの他の部分とのインターフェース
+  (define (tag x)
+    (attach-tag 'rectangular x))
+  (put 'real-part 'rectangular real-part)
+  (put 'imag-part 'rectangular imag-part)
+  (put 'magnitude 'rectangular magnitude)
+  (put 'angle 'rectangular angle)
+  (put 'make-from-real-imag 'rectangular 
+       (lambda (x y) (tag (make-from-real-imag x y))))
+  (put 'make-from-mag-ang 'rectangular
+       (lambda (r a) (tag (make-from-mag-ang r a))))
+  (put 'equ? '(rectangular rectangular) 
+       (lambda (x y) (and (apply-generic 'equ? (real-part x) (real-part y)) (apply-generic 'equ? (imag-part x) (imag-part y)))))
+  'done)
+  
+
+;;極座標表現
+(define (install-polar-package-compound)
+  ;;内部手続き
+  (define (magnitude z) (car z))
+  (define (angle z) (cdr z))
+  (define (make-from-mag-ang r a) (cons r a))
+  (define (real-part z)
+    (apply-generic 'mul (magnitude z) (cos (angle z))))
+  (define (imag-part z)
+    (apply-generic 'mul (magnitude z) (sin (angle z))))
+  (define (make-from-real-imag x y)
+    (cons (apply-generic 'sqrt (apply-generic 'add (square x) (square y)))
+          (apply-generic 'atan y x)))
+
+  ;;システムの他の部分とのインターフェイス
+  (define (tag x)
+    (attach-tag 'polar x))
+  (put 'real-part 'polar real-part)
+  (put 'imag-part 'polar imag-part)
+  (put 'magnitude 'polar magnitude)
+  (put 'angle 'polar angle)
+  (put 'make-from-real-imag 'polar
+       (lambda (x y) (tag (make-from-real-imag x y))))
+  (put 'make-from-mag-ang 'polar
+       (lambda (r a) (tag (make-from-mag-ang r a))))
+  (put 'equ? '(polar polar) 
+       (lambda (x y) (and (apply-generic 'equ? (magnitude x) (magnitude y)) (apply-generic 'equ? (angle x) (angle y)))))
+  'done)
+
+; override packages (put impl will not overwrite, so comment out old ones manually)
+(install-polar-package-compound)
+(install-rectangular-package-compound)
+(install-complex-package-compound)
+
+; what to do ?
+; 1. add generic sin, cos
+; 2. replace all primitive arithmetic method with user-defined ones
+
+(define c1 (make-complex-from-real-imag 1 2))
+(define c2 (make-complex-from-real-imag (make-rational 1 2) (make-rational 2 3)))
+(apply-generic 'add c2 c2)
+(apply-generic 'sub c2 c2)
+
+; still couple of missing methods in rational package, never mind...
