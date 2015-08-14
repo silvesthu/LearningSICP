@@ -43,12 +43,21 @@
 (put 'sub '(number number) (lambda (x y) (- x y)))
 (put 'mul '(number number) (lambda (x y) (* x y)))
 (put 'div '(number number) (lambda (x y) (/ x y)))
+(put 'gcd '(number number) (lambda (x y) 
+  (display "gcd (n) ") (display x) (display ", ") (display y) (newline)
+  (gcd x y)))
 (put 'sin 'number (lambda (x) (sin x)))
 (put 'cos 'number (lambda (x) (cos x)))
 (put 'atan 'number (lambda (x) (atan x)))
 (put 'sqrt 'number (lambda (x) (sqrt x)))
 (put 'square 'number (lambda (x) (* x x)))
 (put 'equ? '(number number) (lambda (x y) (eq? x y))) ; still have to port....
+(put 'reduce '(number number) (lambda (x y) 
+  (display "reduce (n) ") (display x) (display ", ") (display y) (newline)
+  (let ((g (gcd x y)))
+    (cons (/ x g) (/ y g))
+  )
+))
 ;(put 'add-3 '(number number number) (lambda (x y z) (+ x y z))) ; still have to port....
 (put '=zero? 'number (lambda (x) (eq? x 0))) ; still have to port....
 
@@ -65,22 +74,26 @@
   (define (numer x) (car x))
   (define (denom x) (cdr x))
   (define (make-rat n d)
-    (let ((g (gcd n d)))
-      (cons (/ n g) (/ d g))))
+    (let ((g (apply-generic 'gcd n d)))
+      ;(cons (div n g) (div d g)))
+      ;(cons n d))
+      (apply-generic 'reduce n d))
+  )
   (define (add-rat x y)
-    (make-rat (+ (* (numer x) (denom y))
-                 (* (numer y) (denom x)))
-              (* (denom x) (denom y))))
+    ;(display "add-rat (r) ") (display x) (display ", ") (display y) (newline)
+    (make-rat (apply-generic 'add (apply-generic 'mul (numer x) (denom y))
+                 (apply-generic 'mul (numer y) (denom x)))
+              (apply-generic 'mul (denom x) (denom y))))
   (define (sub-rat x y)
-    (make-rat (- (* (numer x) (denom y))
-                 (* (numer y) (denom x)))
-              (* (denom x) (denom y))))
+    (make-rat (apply-generic 'sub (apply-generic 'mul (numer x) (denom y))
+                 (apply-generic 'mul (numer y) (denom x)))
+              (apply-generic 'mul (denom x) (denom y))))
   (define (mul-rat x y)
-    (make-rat (* (numer x) (numer y))
-              (* (denom x) (denom y))))
+    (make-rat (apply-generic 'mul (numer x) (numer y))
+              (apply-generic 'mul (denom x) (denom y))))
   (define (div-rat x y)
-    (make-rat (* (numer x) (denom y))
-              (* (denom x) (numer y))))
+    (make-rat (apply-generic 'mul (numer x) (denom y))
+              (apply-generic 'mul (denom x) (numer y))))
 
   ;;システムの他の部分へのインターフェース
   (define (tag x) (attach-tag 'rational x))
@@ -105,8 +118,6 @@
 
 (define (make-rational n d)
   ((get 'make 'rational) n d))
-
-
 
 ;;複素数表現
 (define (install-complex-package)
@@ -275,7 +286,7 @@
       (if proc        
         (apply proc (map contents args))
         (error
-          "1. No method for these types -- APPLY-GENERIC"
+          "No method for these types -- APPLY-GENERIC"
           (list op type-tags))))))
 
 (define (install-simplify-package)
@@ -369,7 +380,7 @@
 
   (define (on-terms L1 L2 op opterm)
     ;(display "on-terms ") (display L1) (newline)
-    (cond ((empty-termlist? L1) L2)
+    (cond ((empty-termlist? L1) (map opterm L2))
           ((empty-termlist? L2) L1)
           (else
            (let ((t1 (first-term L1)) (t2 (first-term L2)))
@@ -407,22 +418,25 @@
   ;; procedures used by mul-poly
   
   (define (mul-terms L1 L2)
+    ;(display "L1 = ") (display L1) (newline)
     (if (empty-termlist? L1)
       (the-empty-termlist)
       (add-terms (mul-term-by-all-terms (first-term L1) L2)
                  (mul-terms (rest-terms L1) L2))))
   
   (define (mul-term-by-all-terms t1 L)
+    ;(display "t1 = ") (display t1) (newline)
     (if (empty-termlist? L)
       (the-empty-termlist)
       (let ((t2 (first-term L)))
         (adjoin-term
-          (make-term (+ (order t1) (order t2))
+          (make-term (add (order t1) (order t2))
                      (mul (coeff t1) (coeff t2)))
           (mul-term-by-all-terms t1 (rest-terms L))))))
 
   (define (div-terms L1 L2)
-    (newline)
+    ;(newline)
+    ;(display "div ") (display L1) (display " ~ ") (display L2) (newline)
     (if (empty-termlist? L1)
       (list (the-empty-termlist) (the-empty-termlist))
       (let ((t1 (first-term L1))
@@ -434,6 +448,7 @@
             (let ((rest-of-result
               ;<compute rest of result recursively>
               (sub-terms L1 (mul-terms L2 (list (make-term new-o new-c))))))
+              ;(display "sub ") (display rest-of-result) (display " ~ ") (display L1) (display " - ") (display (mul-terms L2 (list (make-term new-o new-c)))) (newline)
               (let ((inner (div-terms rest-of-result L2)))
                 (list
                   (add-terms (list (make-term new-o new-c)) (car inner))
@@ -450,9 +465,97 @@
 
   (define (div-poly p1 p2)
     (if (same-variable? (variable p1) (variable p2))
+      ;(make-poly (variable p1)
+      (let ((result (div-terms (term-list p1) (term-list p2))))
+        (cons 
+          (make-poly (variable p1) (car result))
+          (make-poly (variable p1) (cdr result))
+        )
+      )
+      (error "Polys not in same var -- DIV-POLY"
+             (list p1 p2))))
+
+  (define (remainder-terms a b)
+    ;(display "a = ") (display a) (newline)
+    ;(display "b = ") (display b) (newline)
+    (cadr (div-terms a b))
+  )
+
+  ; 2.96
+  (define (pseudoremainder-terms a b)
+    ;(display "pseudo-div ") (display a) (display ", ") (display b) (newline)
+    (let ((e 
+          (list 
+            (list 
+              0 
+              (expt (coeff (first-term b)) (+ 1 (order (first-term a)) (- (order (first-term b)))))
+            )
+          )))
+      
+      (let ((d
+        (div-terms 
+          (mul-terms a e) 
+          b
+        )))
+        ;(display "e = ") (display e) (newline)
+        ;(display (car d)) (display "     ~    ") (display (cadr d)) (newline)
+        ;(if (empty-termlist? (cadr d))
+        (cadr d)
+        ;  (the-empty-termlist)
+        ;)
+      )
+    )
+  )
+
+  (define (gcd-terms a b)
+    ;(display "gcd-terms") (display a) (display ", ") (display b) (newline)
+    (if (empty-termlist? b)
+      a
+      ;(gcd-terms b (remainder-terms a b))
+      (gcd-terms b (pseudoremainder-terms a b))
+    )
+  )
+
+  ;(define (reduce-terms n d)
+  ;  ;(display "reduce-terms ") (display n) (display ", ") (display d) (newline)
+  ;  ;(display "result = ") 
+  ;  ;(display     
+  ;  ;  (let ((g (gcd-terms n d)))
+  ;  ;    (list (car (div-terms n g)) (car (div-terms d g))))) (newline)
+  ;  (let ((g (gcd-terms n d)))
+  ;    (list (car (div-terms n g)) (car (div-terms d g)))
+  ;  )    
+  ;)
+
+  ;(define (reduce-poly p1 p2)
+  ;  ;(display "reduce-poly ") (display p1) (display ", ") (display p2) (newline)
+  ;  (if (same-variable? (variable p1) (variable p2))
+  ;    (list (make-poly (variable p1)
+  ;               (car (reduce-terms (term-list p1)
+  ;                             (term-list p2))))
+  ;          (make-poly (variable p1)
+  ;               (cadr (reduce-terms (term-list p1)
+  ;                             (term-list p2))))
+  ;    )
+  ;    (error "Polys not in same var -- REDUCE-POLY"
+  ;           (list p1 p2)))
+  ;)
+
+  (define (reduce-coeffs a) 
+    ;(let ((g (map (lambda (x) (coeff)) a))))
+    ;(display (map (lambda (x) (coeff x)) a))
+    ;(display "reduce-coeffs ") (display a) (newline)
+    (let ((g (apply gcd (map (lambda (x) (coeff x)) a))))
+      (map (lambda (x) (make-term (order x) (/ (coeff x) g))) a)
+    )
+  )
+
+  (define (gcd-poly p1 p2)
+    ;(display "gcd terms = ") (display (gcd-terms (term-list p1) (term-list p2))) (newline)
+    (if (same-variable? (variable p1) (variable p2))
       (make-poly (variable p1)
-                 (div-terms (term-list p1)
-                            (term-list p2)))
+                 (reduce-coeffs (gcd-terms (term-list p1)
+                                            (term-list p2))))
       (error "Polys not in same var -- DIV-POLY"
              (list p1 p2))))  
   
@@ -470,7 +573,26 @@
        (lambda (p1 p2) (tag (mul-poly p1 p2))))
 
   (put 'div '(polynomial polynomial) 
-       (lambda (p1 p2) (tag (div-poly p1 p2))))
+       (lambda (p1 p2) 
+       (list 
+          (tag (car (div-poly p1 p2))) 
+          (tag (cdr (div-poly p1 p2)))
+       ))
+  )
+
+  (put 'gcd '(polynomial polynomial)
+       (lambda (p1 p2) (tag (gcd-poly p1 p2))))
+
+  (put 'reduce '(polynomial polynomial)
+    (lambda (p1 p2) 
+       (let ((g (gcd-poly p1 p2)))
+        ;(display "g = ")(display g) (newline)
+        (cons 
+          (tag (car (div-poly p1 g))) 
+          (tag (car (div-poly p2 g)))
+       ))
+    )
+  )
   
   (put 'make 'polynomial
        (lambda (var terms) (tag (make-poly var terms))))
