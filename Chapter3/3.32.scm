@@ -10,12 +10,9 @@
 	(define (set-my-signal! new-value)
 	  (if (not (= signal-value new-value))
 		(begin (set! signal-value new-value)
-			   (newline) (display "set-my-signal!: " ) (display signal-value) (display '----) (display action-procedures) (newline)
+			   ;(newline) (display "set-my-signal!: " ) (display signal-value) (display '----) (display action-procedures) (newline)
 			   (call-each action-procedures))
 		'done))
-
-	;(define (accept-action-procedure! proc)
-	;  (set! action-procedures (cons proc action-procedures)))
 
 	(define (accept-action-procedure! proc)
 	  (set! action-procedures (cons proc action-procedures))
@@ -50,9 +47,7 @@
 (define (make-time-segment time queue)
   (cons time queue))
 
-
 (define (segment-time s) (car s))
-
 
 (define (segment-queue s) (cdr s))
 
@@ -60,20 +55,15 @@
 
 (define (current-time agenda) (car agenda))
 
-
 (define (set-current-time! agenda time)
   (set-car! agenda time))
 
-
 (define (segments agenda) (cdr agenda))
-
 
 (define (set-segments! agenda segments)
   (set-cdr! agenda segments))
 
-
 (define (first-segment agenda) (car (segments agenda)))
-
 
 (define (rest-segments agenda) (cdr (segments agenda)))
 
@@ -251,41 +241,39 @@
 
 (define input-1 (make-wire))
 (define input-2 (make-wire))
-(define sum (make-wire))
-(define carry (make-wire))
 
-(display '-0-)
-(probe 'sum sum) ; called immediately to show sum
+; -- ex3.32 ---------------------------------------
 
-(display '-1-)
-(probe 'carry carry) ; called immediately to show carry
+(define result (make-wire))
 
-(display '-2-)
-(half-adder input-1 input-2 sum carry) ; S = (I1 OR I2) AND (NOT (I1 AND I2)), C = I1 AND I2, all actions added
+(probe 'input-1 input-1)
+(probe 'input-2 input-2)
+(probe 'result result)
 
-(display '-3-)
-(set-signal! input-1 1) ; I1 = 1, AND, OR added to agenda and executed on I1
+(and-gate input-1 input-2 result)
 
-(display '-4-)
-(propagate) ; time forwards, NOT and the second AND executed on both wire
+(set-signal! input-1 0)
+(set-signal! input-2 1)
 
-(display '-5-)
-(set-signal! input-2 1) ; I2 = 1, AND, OR added to agenda and executed on I2
+(display "-- propagate --")(newline)
 
-(display '-6-)
-(propagate) ; time forwards, carry updated, NOT executed, second AND executed
+(propagate)
 
-; ---------------------------------------------------
+(display "-- change --")(newline)
 
-; ↓　output if not run action immediately
+(set-signal! input-1 1)
+(set-signal! input-2 0)
 
-;'ok
-;'done
-;'done
-;'done
+(display "-- propagate --")(newline)
 
-;carry 11  New-value = 1'done
+(propagate)
 
-; Action only executed when a state is changed.
-; At the initialization stage, setup should be considered as a state change (no state -> 0 / 1)
-; Otherwise, the state of wire remains uninitialized, which will lead to missing of action execution
+; if propagates works LIFO, it will handle change on input-2 first, then input-1
+; process will be
+; START: input-1 = 0, input-2 = 1
+; SET-1: input-1 = 1, input-2 = 1, schedule input-1 action
+; SET-2: input-1 = 1, input-2 = 0, schedule input-2 action
+; ACT-2: result = 1 && 0 = 0
+; ACT-1: result = 1 && 1 = 1 -> witch is not correct
+
+(display "-- change --")(newline)
