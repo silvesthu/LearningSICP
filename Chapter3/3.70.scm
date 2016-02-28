@@ -1,0 +1,122 @@
+#lang racket
+(require racket/stream)
+
+(define (interleave s1 s2)
+  (if (stream-empty? s1)
+      s2
+      (stream-cons (stream-first s1)
+                    (interleave s2 (stream-rest s1)))
+  )
+)
+
+(define (merge-weighted s1 s2 w)
+  (cond 
+    ((stream-empty? s1) s2)
+    ((stream-empty? s2) s1)
+    (else 
+      (let 
+        ((s1car (stream-first s1))
+         (s2car (stream-first s2)))
+        (cond 
+          ((< (w s1car s2car) 0)
+            (stream-cons s1car (merge-weighted (stream-rest s1) s2 w)))
+          (else
+            (stream-cons s2car (merge-weighted s1 (stream-rest s2) w)))
+        )
+      )
+    )
+  )
+)
+
+(define (pairs s t w)
+  (stream-cons
+    (list (stream-first s) (stream-first t))
+    (merge-weighted
+      (stream-map (lambda (x) (list (stream-first s) x))
+        (stream-rest t)
+      )
+      (pairs (stream-rest s) (stream-rest t) w)
+      w
+    )
+  )
+)
+
+(define (make-integers)
+  (define (make-integers-inner i)
+    (stream-cons i (make-integers-inner (+ i 1)))
+  )
+  (make-integers-inner 1)
+)
+
+(define integers (make-integers))
+(define (pairs-compare x y)
+  (- (+ (car x) (cadr x)) (+ (car y) (cadr y))))
+
+(define sum-ordered-pairs (pairs integers integers pairs-compare))
+
+(display "on ") (display 0) (display " = ") (stream-ref sum-ordered-pairs 0) 
+(display "on ") (display 1) (display " = ") (stream-ref sum-ordered-pairs 1) 
+(display "on ") (display 2) (display " = ") (stream-ref sum-ordered-pairs 2) 
+(display "on ") (display 3) (display " = ") (stream-ref sum-ordered-pairs 3) 
+(display "on ") (display 4) (display " = ") (stream-ref sum-ordered-pairs 4) 
+(display "on ") (display 5) (display " = ") (stream-ref sum-ordered-pairs 5) 
+(display "on ") (display 6) (display " = ") (stream-ref sum-ordered-pairs 6) 
+(display "on ") (display 7) (display " = ") (stream-ref sum-ordered-pairs 7) 
+(display "on ") (display 8) (display " = ") (stream-ref sum-ordered-pairs 8) 
+(display "on ") (display 9) (display " = ") (stream-ref sum-ordered-pairs 9) 
+(display "on ") (display 10) (display " = ") (stream-ref sum-ordered-pairs 10) 
+(display "on ") (display 11) (display " = ") (stream-ref sum-ordered-pairs 11) 
+(display "on ") (display 12) (display " = ") (stream-ref sum-ordered-pairs 12) 
+(display "on ") (display 13) (display " = ") (stream-ref sum-ordered-pairs 13) 
+(display "on ") (display 14) (display " = ") (stream-ref sum-ordered-pairs 14) 
+(display "on ") (display 15) (display " = ") (stream-ref sum-ordered-pairs 15) 
+(display "on ") (display 16) (display " = ") (stream-ref sum-ordered-pairs 16) 
+(display "on ") (display 17) (display " = ") (stream-ref sum-ordered-pairs 17) 
+(display "on ") (display 18) (display " = ") (stream-ref sum-ordered-pairs 18) 
+(display "on ") (display 19) (display " = ") (stream-ref sum-ordered-pairs 19) 
+
+(define (235-compare x y)
+  (define (i pair) (car pair))
+  (define (j pair) (cadr pair))
+  (define (e pair)
+    (+ (* (i pair) 2) (* (j pair) 3) (* (i pair) (j pair) 5))
+  )
+  (- (e x) (e y))
+)
+(define (235-filter pair)
+  (define (i pair) (car pair))
+  (define (j pair) (cadr pair))
+  (and
+    (not (eq? (remainder (i pair) 2) 0))
+    (not (eq? (remainder (i pair) 3) 0))
+    (not (eq? (remainder (i pair) 5) 0))
+    (not (eq? (remainder (j pair) 2) 0))
+    (not (eq? (remainder (j pair) 3) 0))
+    (not (eq? (remainder (j pair) 5) 0))
+  )
+)
+(define 235-ordered-pairs (stream-filter 235-filter (pairs integers integers 235-compare)))
+
+; compared with https://wqzhang.wordpress.com/2009/08/25/sicp-exercise-3-70/
+; should filter 235 divisable before pass them to pairs...
+
+;(display "on ") (display 0) (display " = ") (stream-ref 235-ordered-pairs 0) 
+;(display "on ") (display 1) (display " = ") (stream-ref 235-ordered-pairs 1) 
+;(display "on ") (display 2) (display " = ") (stream-ref 235-ordered-pairs 2) 
+;(display "on ") (display 3) (display " = ") (stream-ref 235-ordered-pairs 3) 
+;(display "on ") (display 4) (display " = ") (stream-ref 235-ordered-pairs 4) 
+;(display "on ") (display 5) (display " = ") (stream-ref 235-ordered-pairs 5) 
+;(display "on ") (display 6) (display " = ") (stream-ref 235-ordered-pairs 6) 
+;(display "on ") (display 7) (display " = ") (stream-ref 235-ordered-pairs 7) 
+;(display "on ") (display 8) (display " = ") (stream-ref 235-ordered-pairs 8) 
+;(display "on ") (display 9) (display " = ") (stream-ref 235-ordered-pairs 9) 
+;(display "on ") (display 10) (display " = ") (stream-ref 235-ordered-pairs 10) 
+;(display "on ") (display 11) (display " = ") (stream-ref 235-ordered-pairs 11) 
+;(display "on ") (display 12) (display " = ") (stream-ref 235-ordered-pairs 12) 
+;(display "on ") (display 13) (display " = ") (stream-ref 235-ordered-pairs 13) 
+;(display "on ") (display 14) (display " = ") (stream-ref 235-ordered-pairs 14) 
+;(display "on ") (display 15) (display " = ") (stream-ref 235-ordered-pairs 15) 
+;(display "on ") (display 16) (display " = ") (stream-ref 235-ordered-pairs 16) 
+;(display "on ") (display 17) (display " = ") (stream-ref 235-ordered-pairs 17) 
+;(display "on ") (display 18) (display " = ") (stream-ref 235-ordered-pairs 18) 
+;(display "on ") (display 19) (display " = ") (stream-ref 235-ordered-pairs 19) 
