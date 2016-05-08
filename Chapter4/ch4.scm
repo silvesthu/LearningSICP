@@ -1,3 +1,6 @@
+; http://www-inst.eecs.berkeley.edu/~cs61a/sp09/library/code/ch4.scm
+
+
 ;;;;CODE FROM CHAPTER 4 OF STRUCTURE AND INTERPRETATION OF COMPUTER PROGRAMS
 
 ;;;;**DON'T TRY TO LOAD THIS FILE INTO SCHEME**

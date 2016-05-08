@@ -1,3 +1,5 @@
+; from http://www-inst.eecs.berkeley.edu/~cs61a/sp09/library/code/ch4.scm
+
 (require r5rs)
 
 (define (list-of-values exps env)
