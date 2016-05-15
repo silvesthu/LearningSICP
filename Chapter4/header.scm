@@ -188,8 +188,8 @@
 (define (make-procedure parameters body env)
   ;(display (list 'procedure parameters body env)) (newline) (newline)
   ;(display (append (scan-out-defines (list 'procedure parameters body)) (list env))) (newline) (newline)
-  (append (scan-out-defines (list 'procedure parameters body)) (list env)))
-  ;(list 'procedure parameters body env))
+  ;(append (scan-out-defines (list 'procedure parameters body)) (list env)))
+  (list 'procedure parameters body env))
 
 (define (compound-procedure? p)
   (tagged-list? p 'procedure))
