@@ -160,8 +160,36 @@
 (define (false? x)
   (eq? x false))
 
+(define (filter pred x)
+      (cond 
+        ((null? x) x)
+        ((pred (car x)) (cons (car x) (filter pred (cdr x))))
+        (else (filter pred (cdr x)))))
+
+(define (scan-out-defines proc-exp)
+ (define keyword (car proc-exp)) ; 'procedure
+ (define parameters (cadr proc-exp))
+ (define expressions (cddr proc-exp))
+ (define var-defines 
+  (filter (lambda (e) (and (pair? e) (eq? (car e) 'define) (not (pair? (cadr e))))) (caddr proc-exp)))
+ (define proc-defines 
+  (filter (lambda (e) (and (pair? e) (eq? (car e) 'define) (pair? (cadr e)))) (caddr proc-exp)))
+ (define non-defines (filter (lambda (e) (not (and (pair? e) (eq? (car e) 'define)))) (caddr proc-exp)))
+ (define (name n) (if (pair? n) (car n) n))
+ (list keyword parameters 
+    (list (append (list 'let)
+      (list (map (lambda (d) (list (name (cadr d)) ''*unassigned*)) (append var-defines proc-defines)))
+      (map (lambda (d) (list 'set! (cadr d) (list (caddr d)))) 
+        var-defines)
+      (map (lambda (d) (list 'set! (caadr d) (make-lambda (cdadr d) (list (caddr d))))) proc-defines)
+        non-defines)))
+)
+
 (define (make-procedure parameters body env)
-  (list 'procedure parameters body env))
+  ;(display (list 'procedure parameters body env)) (newline) (newline)
+  ;(display (append (scan-out-defines (list 'procedure parameters body)) (list env))) (newline) (newline)
+  (append (scan-out-defines (list 'procedure parameters body)) (list env)))
+  ;(list 'procedure parameters body env))
 
 (define (compound-procedure? p)
   (tagged-list? p 'procedure))
@@ -200,7 +228,9 @@
       (cond ((null? vars)
              (env-loop (enclosing-environment env)))
             ((eq? var (car vars))
-             (car vals))
+             (if (eq? (car vals) '*unassigned*)
+              (error "Unassigned variable" var)
+              (car vals)))
             (else (scan (cdr vars) (cdr vals)))))
     (if (eq? env the-empty-environment)
         (error "Unbound variable" var)
@@ -255,8 +285,10 @@
         (list 'list list)
         (list 'cons cons)
         (list 'display display)
+        (list 'newline newline)
         (list '< <)
         (list '> >)
+        (list '= =)
 ;;      more primitives
         ))
 
@@ -361,5 +393,46 @@
 
 (put-keyword 'or (lambda (exp env) (eval-or (cdr exp) env)))
 ;(eval@ '(or (< 1 0)) the-global-environment)
+
+; -------------------------------------------
+
+; port from 4.6
+(define (let->lambda exp)
+  (define clauses (cdr exp))
+  (if (null? clauses)
+      'false
+      ;(error "let->lambda" (car clauses)))
+      (let (
+          (raw-defines (car clauses)) 
+          (expressions (cdr clauses))
+        )
+        (define defines (map (lambda (d) (cons 'define d)) raw-defines))
+        ;(error "defines" defines)
+        (sequence->exp (append defines expressions))
+      ))
+)
+
+(put-keyword 'let (lambda (exp env) (eval@ (let->lambda exp) env)))
+
+
+;(define (let->lambda-parameters lets)
+;  (map car lets)
+;)
+
+;(define (let->arguments lets)
+;  (map cdr lets)
+;)
+
+;(define (let->combination exp)
+;  (let 
+;    (
+;      (let-keyword (car exp))
+;      (lets (cadr exp))
+;      (body (caddr))
+;    )
+;    (apply (make-lambda (let->lambda-parameters lets) body) (sequence->exp (let->arguments lets)))
+;  )
+;)
+
 
 
