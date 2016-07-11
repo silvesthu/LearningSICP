@@ -20,7 +20,7 @@
   ((analyze exp) env))
 
 (define (analyze exp)
-  (display "analyze: ")(display exp)(newline)
+  ;(display "analyze: ")(display exp)(newline)
   (cond ((self-evaluating? exp) 
          (analyze-self-evaluating exp))
         ((quoted? exp) (analyze-quoted exp))
@@ -76,10 +76,14 @@
         (bproc (analyze-sequence (lambda-body exp))))
     (lambda (env) (make-procedure vars bproc env))))
 
+;; Text version
 (define (analyze-sequence exps)
+  ;(set! counter-analyze (+ counter-analyze 1))
   (define (sequentially proc1 proc2)
+    ;(display "execute-sequence-sequentially [Text]")(newline)
     (lambda (env) (proc1 env) (proc2 env)))
   (define (loop first-proc rest-procs)
+    ;(display "execute-sequence-loop [Text]")(newline)
     (if (null? rest-procs)
         first-proc
         (loop (sequentially first-proc (car rest-procs))
@@ -89,18 +93,31 @@
         (error "Empty sequence -- ANALYZE"))
     (loop (car procs) (cdr procs))))
 
+; ;; Alyssa version
+; (define (analyze-sequence exps)
+;   (define (execute-sequence procs env)
+;     (display "execute-sequence [Alyssa]")(newline)
+;     (cond ((null? (cdr procs)) ((car procs) env))
+;       (else ((car procs) env)
+;         (execute-sequence (cdr procs) env))))
+;   (let ((procs (map analyze exps)))
+;     (if (null? procs)
+;       (error "Empty sequence -- ANALYZE"))
+;     (lambda (env) (execute-sequence procs env))))
+
 (define (analyze-application exp)
   (let ((fproc (analyze (operator exp)))
         (aprocs (map analyze (operands exp))))
     (lambda (env)
+      ;(set! counter-execute (+ counter-execute 1))
       (execute-application (fproc env)
                            (map (lambda (aproc) (aproc env))
                                 aprocs)))))
 
 (define (execute-application proc args)
-  (display "execute-application")(newline)
-  (display "  proc: ")(display proc)(newline)
-  (display "  args: ")(display args)(newline)
+  ; (display "execute-application")(newline)
+  ; (display "  proc: ")(display proc)(newline)
+  ; (display "  args: ")(display args)(newline)
   (cond ((primitive-procedure? proc)
          (apply-primitive-procedure proc args))
         ((compound-procedure? proc)

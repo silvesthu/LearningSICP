@@ -14,6 +14,7 @@
       (eval@ (if-alternative exp) env)))
 
 (define (eval-sequence exps env)
+  ;(set! counter-eval (+ counter-eval 1))
   (cond ((last-exp? exps) (eval@ (first-exp exps) env))
         (else (eval@ (first-exp exps) env)
               (eval-sequence (rest-exps exps) env))))
@@ -289,6 +290,8 @@
         (list '< <)
         (list '> >)
         (list '= =)
+        (list '<= <=)
+        (list '>= >=)
 ;;      more primitives
         ))
 
@@ -351,6 +354,7 @@
          (error "Unknown expression type -- EVAL" exp))))
 
 (define (apply@ procedure arguments)
+  ;(set! counter-execute (+ counter-execute 1))
   (cond ((primitive-procedure? procedure)
          (apply-primitive-procedure procedure arguments))
         ((compound-procedure? procedure)
