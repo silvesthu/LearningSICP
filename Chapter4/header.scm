@@ -96,11 +96,11 @@
 
 
 (define (make-if predicate consequent alternative)
-  (display "<make-if>") (newline)
-  (display predicate) (newline)
-  (display consequent) (newline)
-  (display alternative) (newline)
-  (display "</make-if>") (newline)
+  ; (display "<make-if>") (newline)
+  ; (display predicate) (newline)
+  ; (display consequent) (newline)
+  ; (display alternative) (newline)
+  ; (display "</make-if>") (newline)
   (list 'if predicate consequent alternative))
 
 (define (begin? exp) (tagged-list? exp 'begin))
