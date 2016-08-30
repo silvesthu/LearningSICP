@@ -2,6 +2,8 @@
 
 (require r5rs)
 
+(define ENABLE-DEBUG-DISPLAY #f)
+
 (define (list-of-values exps env)
   (if (no-operands? exps)
       '()
@@ -15,9 +17,17 @@
 
 (define (eval-sequence exps env)
   ;(set! counter-eval (+ counter-eval 1))
+  (if ENABLE-DEBUG-DISPLAY (begin (display exps) (newline)))
   (cond ((last-exp? exps) (eval@ (first-exp exps) env))
         (else (eval@ (first-exp exps) env)
               (eval-sequence (rest-exps exps) env))))
+
+; 4.30 Cy
+;(define (eval-sequence exps env)
+;  (if ENABLE-DEBUG-DISPLAY (begin (display exps) (newline)))
+;  (cond ((last-exp? exps) (eval@ (first-exp exps) env))
+;        (else (actual-value (first-exp exps) env)
+;              (eval-sequence (rest-exps exps) env))))
 
 (define (eval-assignment exp env)
   (set-variable-value! (assignment-variable exp)
