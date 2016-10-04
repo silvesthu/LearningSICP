@@ -60,7 +60,22 @@
 )
 
 (define (apply-lazy procedure arguments env)
-  (cond ((primitive-procedure? procedure)
+  (cond ((and (primitive-procedure? procedure) (eq? (cadr procedure) display))
+          (begin
+            ;(display "[display] ") (display arguments) (newline)
+            (display "(")
+            (if (pair? (cadar arguments))
+              (apply-lazy procedure (cons (cadar arguments) '()) env)
+              (display (cadar arguments))
+            )
+            (display ",")
+            (if (pair? (caddar arguments))
+              (apply-lazy procedure (cons (caddar arguments) '()) env)
+              (display (caddar arguments))
+            )
+            (display ")")
+          )) ; changed
+        ((primitive-procedure? procedure)
          (apply-primitive-procedure
           procedure
           (list-of-arg-values arguments env))) ; changed
@@ -76,6 +91,7 @@
           "Unknown procedure type -- APPLY" procedure))))
 
 (define (eval-lazy exp env)
+  (if ENABLE-DEBUG-DISPLAY (begin (display "[eval-lazy] ") (display exp) (newline)))
   (cond ((self-evaluating? exp) exp)
         ((variable? exp) (lookup-variable-value exp env))
         ((quoted? exp) (text-of-quotation exp))
