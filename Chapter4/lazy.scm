@@ -60,6 +60,36 @@
 )
 
 (define (apply-lazy procedure arguments env)
+  ; (let 
+  ;   ((value 
+  ;     (if (eq? (cadr procedure) display)
+  ;        (if (pair? (car arguments))
+  ;         ; list -> print the list
+  ;         (if (eq? (caar arguments) 'quote)
+  ;           ; quote
+  ;           (begin 
+  ;             ;(display (cadar arguments)) 
+  ;           #f)
+  ;           ; other
+  ;           (begin 
+  ;             ;(display (car arguments)) 
+  ;           #f) ; pass to default procedure
+  ;         )
+  ;         ; single value -> evaluate
+  ;         (begin (display (lookup-variable-value (car arguments) env)) #t)
+  ;        )
+  ;        #f ; pass to default procedure
+  ;     )))
+  ;   (if value
+  ;     value
+  ;     (apply-lazy-inner procedure arguments env)
+  ;   )
+  ; )
+  (apply-lazy-inner procedure arguments env)
+)
+
+(define (apply-lazy-inner procedure arguments env)
+;  (display procedure) (newline)
   (cond ((primitive-procedure? procedure)
          (apply-primitive-procedure
           procedure
@@ -75,10 +105,42 @@
          (error
           "Unknown procedure type -- APPLY" procedure))))
 
+(define (quote-to-list exp env)
+  ; (newline)
+  ; (display "quote-to-list ")(display exp)(display " --- ")(display (pair? exp))
+  ; (newline)
+  (if (and (pair? exp) (not (eq? (car exp) 'quote)))
+    (list 'cons (list 'quote (car exp)) (quote-to-list (cdr exp) env))
+    exp
+  )
+)
+
+(define (text-of-quotation-lazy exp env)
+  (if (pair? (cadr exp))
+    ; list -> e.g. '(a b c)
+    (begin
+      ; (newline)
+      ; (display "text-of-quotation-lazy ")(display exp);(display " --- ") (display (quote-to-list (cadr exp) env))
+      ; (newline)
+      (eval-lazy (quote-to-list (cadr exp) env) env)
+    )
+    ; single value -> e.g. 'a
+    (begin 
+      ; (newline)
+      ; (display "text-of-quotation-lazy ")(display exp)
+      ; (newline)
+      (text-of-quotation exp)  
+    )
+  )
+)
+
 (define (eval-lazy exp env)
+  ; (newline)
+  ; (display "eval-lazy ") (display exp)
+  ; (newline)
   (cond ((self-evaluating? exp) exp)
         ((variable? exp) (lookup-variable-value exp env))
-        ((quoted? exp) (text-of-quotation exp))
+        ((quoted? exp) (text-of-quotation-lazy exp env))
         ((assignment? exp) (eval-assignment exp env))
         ((definition? exp) (eval-definition exp env))
         ((if? exp) (eval-if exp env))
@@ -89,6 +151,7 @@
         ((begin? exp) 
          (eval-sequence (begin-actions exp) env))
         ((cond? exp) (eval-lazy (cond->if exp) env))
+        ;((eq? (car exp) 'car) (display (operands exp)))
         ((application? exp)		;**
          (apply-lazy (actual-value (operator exp) env)
          ;(apply-lazy (eval-lazy (operator exp) env)
